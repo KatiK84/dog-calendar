@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#111111" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Календарь собак</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="title">
+      <div class="logo">🐶</div>
+      <div>
+        <div class="h1">Календарь собак</div>
+        <div class="sub">Бонни • Нола</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <select id="dogFilter" class="select">
+        <option value="all">Все</option>
+        <option value="bonny">Бонни</option>
+        <option value="nola">Нола</option>
+      </select>
+      <button id="addBtn" class="btn primary">+ Добавить</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <nav class="tabs">
+      <button class="tab active" data-tab="upcoming">Ближайшие</button>
+      <button class="tab" data-tab="overdue">Просрочено</button>
+      <button class="tab" data-tab="history">История</button>
+    </nav>
+
+    <section id="list" class="list"></section>
+
+    <section class="footerNote">
+      <div class="note">
+        Напоминания делаются через календарь телефона: открой событие → «Добавить напоминание» → система предложит добавить в Apple/Google Calendar.
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Add/Edit -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modalCard">
+      <div class="modalHeader">
+        <div id="modalTitle" class="modalTitle">Добавить событие</div>
+        <button id="closeModal" class="iconBtn" aria-label="Закрыть">✕</button>
+      </div>
+
+      <form id="eventForm" class="form">
+        <label class="field">
+          <span>Собака</span>
+          <select id="dogId" class="select">
+            <option value="bonny">Бонни</option>
+            <option value="nola">Нола</option>
+            <option value="both">Обе</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Тип события</span>
+          <select id="type" class="select">
+            <option value="food_order">Заказ еды</option>
+            <option value="vaccination">Прививки</option>
+            <option value="wash">Мытьё</option>
+            <option value="tick_collar">Заказ ошейников от клещей</option>
+            <option value="checkup">Чекап</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Дата</span>
+          <input id="date" type="date" class="input" required />
+        </label>
+
+        <label class="field row">
+          <input id="repeatYearly" type="checkbox" />
+          <span>Повторять ежегодно</span>
+        </label>
+
+        <label class="field">
+          <span>Комментарий (необязательно)</span>
+          <input id="note" type="text" class="input" placeholder="например: 12 кг, вкус лосось" />
+        </label>
+
+        <div class="formActions">
+          <button type="button" id="cancelBtn" class="btn">Отмена</button>
+          <button type="submit" class="btn primary">Сохранить</button>
+        </div>
+
+        <input id="editingId" type="hidden" />
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
