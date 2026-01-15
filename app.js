@@ -8,14 +8,26 @@
 const DOGS = {
   bonny: { id: "bonny", name: "Бонни" },
   nola: { id: "nola", name: "Нола" },
+  both: { id: "both", name: "Бонни + Нола" },
 };
 
 const TYPES = {
-  food_order: "Заказ еды",
   vaccination: "Прививки",
-  wash: "Мытьё",
-  tick_collar: "Заказ ошейников от клещей",
-  checkup: "Чекап",
+  flea_collar_order: "Заказать ошейник от блох",
+  deworming: "Entwurmung",
+  shower: "Duschen 🚿",
+  food_order: "Заказать еду",
+  order_deworming: "Заказать Entwurmung",
+  order_wurmtest: "Заказать Wurmtest",
+  do_wurmtest: "Сделать Wurmtest",
+  medkit_check: "Проверка аптечки",
+  order_medkit: "Заказать всё для аптечки",
+  order_pawbalm: "Заказать Pfotenbalsam",
+  order_nosebalm: "Заказать Nasenbalsam",
+  apply_paws: "Смазать лапы",
+  apply_nose: "Смазать нос",
+  blood_test: "Анализ крови",
+  nails: "Проверка и стрижка ногтей",
 };
 
 const STORAGE_KEY = "dogcal.events.v1";
@@ -57,6 +69,19 @@ function parseISODate(iso) {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d, 12, 0, 0, 0);
 }
+
+function repeatLabel(rule){
+  const map = {
+    none: "",
+    yearly: "ежегодно",
+    monthly: "ежемесячно",
+    every3days: "раз в 3 дня",
+    twiceWeek: "2 раза в неделю",
+    quarterly: "раз в квартал",
+    sixWeeks: "раз в полтора месяца",
+  };
+  return map[rule] || "";
+}
 function formatDate(iso) {
   const d = parseISODate(iso);
   return d.toLocaleDateString("ru-RU", { year: "numeric", month: "long", day: "numeric" });
@@ -76,6 +101,44 @@ function addYearsISO(iso, years) {
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
+
+function addDaysISO(dateISO, days){
+  const d = new Date(dateISO + "T00:00:00");
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+}
+function addMonthsISO(dateISO, months){
+  const d = new Date(dateISO + "T00:00:00");
+  const day = d.getDate();
+  d.setMonth(d.getMonth() + months);
+  // handle month rollover
+  if (d.getDate() !== day){
+    d.setDate(0); // last day previous month
+  }
+  return d.toISOString().slice(0,10);
+}
+function addSixWeeksISO(dateISO){
+  return addDaysISO(dateISO, 42);
+}
+function nextTwiceWeekISO(dateISO){
+  const d = new Date(dateISO + "T00:00:00");
+  const wd = d.getDay(); // 0 Sun..6 Sat
+  // roughly Mon/Thu rhythm; if earlier in week -> +3, else +4
+  const delta = (wd === 0) ? 3 : (wd <= 3 ? 3 : 4);
+  return addDaysISO(dateISO, delta);
+}
+function nextByRule(dateISO, rule){
+  switch(rule){
+    case "yearly": return addYearsISO(dateISO, 1);
+    case "monthly": return addMonthsISO(dateISO, 1);
+    case "quarterly": return addMonthsISO(dateISO, 3);
+    case "sixWeeks": return addSixWeeksISO(dateISO);
+    case "every3days": return addDaysISO(dateISO, 3);
+    case "twiceWeek": return nextTwiceWeekISO(dateISO);
+    default: return null;
+  }
+}
+
 
 function statusBadge(event, settings) {
   const isDone = !!event.doneAt;
@@ -196,7 +259,7 @@ const editingIdEl = document.getElementById("editingId");
 const dogIdEl = document.getElementById("dogId");
 const typeEl = document.getElementById("type");
 const dateEl = document.getElementById("date");
-const repeatEl = document.getElementById("repeatYearly");
+const repeatEl = document.getElementById("repeatRule");
 const noteEl = document.getElementById("note");
 
 function openModal(editEvent = null) {
@@ -207,7 +270,7 @@ function openModal(editEvent = null) {
     dogIdEl.value = editEvent.dogId;
     typeEl.value = editEvent.type;
     dateEl.value = editEvent.date;
-    repeatEl.checked = !!editEvent.repeatYearly;
+    repeatEl.value = editEvent.repeatRule || (editEvent.repeatYearly ? "yearly" : "none");
     noteEl.value = editEvent.note || "";
   } else {
     document.getElementById("modalTitle").textContent = "Добавить событие";
@@ -215,7 +278,7 @@ function openModal(editEvent = null) {
     dogIdEl.value = "bonny";
     typeEl.value = "food_order";
     dateEl.value = todayISO();
-    repeatEl.checked = false;
+    repeatEl.value = "none";
     noteEl.value = "";
   }
 }
@@ -242,14 +305,19 @@ function markDone(id) {
   ev.doneAt = new Date().toISOString();
 
   // If repeat yearly: auto-create next year's event (not done)
-  if (ev.repeatYearly) {
-    const next = {
-      ...ev,
-      id: uid(),
-      date: addYearsISO(ev.date, 1),
-      doneAt: null,
-    };
-    state.events.push(next);
+  {
+    const rule = ev.repeatRule || (ev.repeatYearly ? "yearly" : "none");
+    const nextDate = nextByRule(ev.date, rule);
+    if(nextDate){
+      const next = {
+        ...ev,
+        id: uid(),
+        date: nextDate,
+        doneAt: null,
+        repeatRule: rule,
+      };
+      state.events.push(next);
+    }
   }
 
   saveEvents(state.events);
@@ -349,18 +417,33 @@ function render() {
     return;
   }
 
+  
+  // Group by month (Январь 2026 -> tasks...)
+  let currentMonthKey = null;
   events.forEach(ev => {
+    const monthKey = ev.date.slice(0,7); // YYYY-MM
+    if(monthKey !== currentMonthKey){
+      currentMonthKey = monthKey;
+      const [y,m] = monthKey.split("-");
+      const monthName = new Date(Number(y), Number(m)-1, 1).toLocaleString("ru-RU", { month:"long" });
+      const hdr = document.createElement("div");
+      hdr.className = "monthHeader";
+      hdr.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1) + " " + y;
+      listEl.appendChild(hdr);
+    }
+
     const badge = statusBadge(ev, state.settings);
     const card = document.createElement("div");
     card.className = "card";
     const meta = [
       `<div>${formatDate(ev.date)}</div>`,
-      ev.repeatYearly ? `<div>Повтор: ежегодно</div>` : "",
+      repeatLabel(ev.repeatRule || (ev.repeatYearly ? "yearly" : "none")) ? `<div>Повтор: ${repeatLabel(ev.repeatRule || (ev.repeatYearly ? "yearly" : "none"))}</div>` : "",
       ev.note ? `<div>Комментарий: ${escapeHtml(ev.note)}</div>` : "",
       state.tab === "history" && ev.doneAt ? `<div>Выполнено: ${new Date(ev.doneAt).toLocaleString("ru-RU")}</div>` : "",
     ].filter(Boolean).join("");
 
-    card.innerHTML = `
+    card.innerHTML = 
+      `
       <div class="row1">
         <div>
           <div class="cardTitle">${escapeHtml(eventTitle(ev))}</div>
@@ -369,15 +452,16 @@ function render() {
         <div class="badge ${badge.cls}">${badge.text}</div>
       </div>
       <div class="btnRow">
-        ${state.tab !== "history" ? `<button class="btn primary" data-action="done" data-id="${ev.id}">Сделано</button>` : `<button class="btn" data-action="undo" data-id="${ev.id}">Снять отметку</button>`}
+        ${state.tab !== "history" ? `<button class="btn primary" data-action="done" data-id="${ev.id}">Сделано</button>` : `<button class="btn primary" data-action="undo" data-id="${ev.id}">Снять отметку</button>`}
         ${state.tab !== "history" ? `<button class="btn" data-action="move" data-id="${ev.id}">Перенести</button>` : ""}
         <button class="btn" data-action="ics" data-id="${ev.id}">Добавить напоминание</button>
         <button class="btn" data-action="edit" data-id="${ev.id}">Редактировать</button>
-        <button class="btn danger" data-action="delete" data-id="${ev.id}">Удалить</button>
+        <button class="btn danger" data-action="del" data-id="${ev.id}">Удалить</button>
       </div>
     `;
     listEl.appendChild(card);
   });
+;
 }
 
 function escapeHtml(str) {

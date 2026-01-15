@@ -169,3 +169,12 @@ body{
 .field.row{flex-direction:row; align-items:center}
 .field.row span{margin-left:8px; color: var(--text); font-size: 14px}
 .formActions{display:flex; gap:10px; justify-content:flex-end; margin-top: 12px}
+
+
+.monthHeader{
+  margin: 18px 4px 8px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: rgba(255,255,255,0.85);
+  text-transform: none;
+}

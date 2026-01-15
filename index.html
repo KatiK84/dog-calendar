@@ -59,18 +59,29 @@
           <select id="dogId" class="select">
             <option value="bonny">Бонни</option>
             <option value="nola">Нола</option>
-            <option value="both">Обе</option>
+            <option value="both">Бонни + Нола</option>
           </select>
         </label>
 
         <label class="field">
           <span>Тип события</span>
           <select id="type" class="select">
-            <option value="food_order">Заказ еды</option>
             <option value="vaccination">Прививки</option>
-            <option value="wash">Мытьё</option>
-            <option value="tick_collar">Заказ ошейников от клещей</option>
-            <option value="checkup">Чекап</option>
+            <option value="flea_collar_order">Заказать ошейник от блох</option>
+            <option value="deworming">Entwurmung</option>
+            <option value="shower">Duschen 🚿</option>
+            <option value="food_order">Заказать еду</option>
+            <option value="order_deworming">Заказать Entwurmung</option>
+            <option value="order_wurmtest">Заказать Wurmtest</option>
+            <option value="do_wurmtest">Сделать Wurmtest</option>
+            <option value="medkit_check">Проверка аптечки</option>
+            <option value="order_medkit">Заказать всё для аптечки</option>
+            <option value="order_pawbalm">Заказать Pfotenbalsam</option>
+            <option value="order_nosebalm">Заказать Nasenbalsam</option>
+            <option value="apply_paws">Смазать лапы</option>
+            <option value="apply_nose">Смазать нос</option>
+            <option value="blood_test">Анализ крови</option>
+            <option value="nails">Проверка и стрижка ногтей</option>
           </select>
         </label>
 
@@ -79,10 +90,20 @@
           <input id="date" type="date" class="input" required />
         </label>
 
-        <label class="field row">
-          <input id="repeatYearly" type="checkbox" />
-          <span>Повторять ежегодно</span>
+        
+        <label class="field">
+          <span>Повтор</span>
+          <select id="repeatRule" class="input">
+            <option value="none">Не повторять</option>
+            <option value="yearly">Ежегодно</option>
+            <option value="monthly">Ежемесячно</option>
+            <option value="every3days">Раз в 3 дня</option>
+            <option value="twiceWeek">2 раза в неделю</option>
+            <option value="quarterly">Раз в квартал</option>
+            <option value="sixWeeks">Раз в полтора месяца</option>
+          </select>
         </label>
+
 
         <label class="field">
           <span>Комментарий (необязательно)</span>
