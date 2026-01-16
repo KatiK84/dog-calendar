@@ -1,5 +1,5 @@
 // Minimal service worker to enable PWA install + basic offline shell caching
-const CACHE = "dogcal-cache-v4";
+const CACHE = "dogcal-cache-v3";
 const ASSETS = [
   "./",
   "./index.html",
