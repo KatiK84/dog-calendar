@@ -178,3 +178,27 @@ body{
   color: rgba(255,255,255,0.85);
   text-transform: none;
 }
+
+.dogsHeader{
+  display:flex;
+  gap:16px;
+  justify-content:center;
+  margin:12px 0 16px;
+}
+.dogCard{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-weight:600;
+}
+.dogCard img{
+  width:80px;
+  height:80px;
+  object-fit:cover;
+  border-radius:50%;
+  box-shadow:0 4px 10px rgba(0,0,0,0.25);
+}
+.dogName{
+  margin-top:6px;
+  font-size:13px;
+}
