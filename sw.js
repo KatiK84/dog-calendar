@@ -1,5 +1,5 @@
 // Minimal service worker to enable PWA install + basic offline shell caching
-const CACHE = "dogcal-cache-v4";
+const CACHE = "dogcal-cache-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,9 +7,7 @@ const ASSETS = [
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./assets/bonny.jpg",
-  "./assets/nola.jpg"
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
