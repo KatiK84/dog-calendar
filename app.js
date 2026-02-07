@@ -248,6 +248,50 @@ let state = {
 // Elements
 const listEl = document.getElementById("list");
 const dogFilterEl = document.getElementById("dogFilter");
+
+function applyDogFilter(value){
+  dogFilterEl.value = value;
+  state.dogFilter = value;
+  settings.dogFilter = value;
+  saveSettings();
+  renderDogPills();
+  renderEvents();
+}
+
+function renderDogPills(){
+  if(!dogPillsEl) return;
+  const current = dogFilterEl.value || "all";
+  const items = [
+    { id: "bonny", label: DOGS.bonny.name, img: "assets/bonny.jpg" },
+    { id: "nola", label: DOGS.nola.name,  img: "assets/nola.jpg" },
+    { id: "all",  label: "Все",         img: null }
+  ];
+  dogPillsEl.innerHTML = "";
+  for(const it of items){
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "dogPill" + (current===it.id ? " active" : "");
+    b.dataset.dog = it.id;
+    if(it.img){
+      const im = document.createElement("img");
+      im.src = it.img;
+      im.alt = it.label;
+      b.appendChild(im);
+    }
+    const span = document.createElement("span");
+    span.textContent = it.label;
+    b.appendChild(span);
+    dogPillsEl.appendChild(b);
+  }
+}
+
+if(dogPillsEl){
+  dogPillsEl.addEventListener("click", (e)=>{
+    const btn = e.target.closest(".dogPill");
+    if(!btn) return;
+    applyDogFilter(btn.dataset.dog);
+  });
+}
 const tabs = Array.from(document.querySelectorAll(".tab"));
 
 const modal = document.getElementById("modal");
@@ -473,6 +517,9 @@ function escapeHtml(str) {
 // Events
 dogFilterEl.addEventListener("change", () => {
   state.dogFilter = dogFilterEl.value;
+  settings.dogFilter = dogFilterEl.value;
+  saveSettings();
+  renderDogPills();
   render();
 });
 
@@ -501,7 +548,10 @@ form.addEventListener("submit", (e) => {
   const dogId = dogIdEl.value;
   const type = typeEl.value;
   const date = dateEl.value;
-  const repeatYearly = repeatEl.checked;
+  // Repeat is a <select>. We store the rule string in repeatRule.
+  // Older versions used a yearly checkbox, so we keep a legacy repeatYearly flag.
+  const repeatRule = (repeatEl && typeof repeatEl.value === "string") ? repeatEl.value : "none";
+  const repeatYearly = repeatRule === "yearly";
   const note = noteEl.value;
 
   if (!date) {
@@ -526,10 +576,11 @@ form.addEventListener("submit", (e) => {
       old.dogId = dogId;
       old.type = type;
       old.date = date;
-      old.repeatYearly = repeatYearly;
+      old.repeatRule = repeatRule;
+      old.repeatYearly = repeatYearly; // legacy
       old.note = note;
     } else {
-      const ev = { id: uid(), dogId, type, date, repeatYearly, note, doneAt: null };
+      const ev = { id: uid(), dogId, type, date, repeatRule, repeatYearly, note, doneAt: null };
       state.events.push(ev);
     }
     saveEvents(state.events);

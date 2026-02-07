@@ -1,0 +1,54 @@
+
+function applyDogFilter(value){
+  dogFilterEl.value = value;
+  settings.dogFilter = value;
+  saveSettings();
+  renderDogPills();
+  renderEvents();
+}
+
+function renderDogPills(){
+  if(!dogPillsEl) return;
+  const current = dogFilterEl.value || "all";
+
+  dogPillsEl.innerHTML = "";
+
+  const items = [
+    { id: "bonny", label: DOGS.bonny.name, img: "assets/bonny.jpg" },
+    { id: "nola", label: DOGS.nola.name, img: "assets/nola.jpg" },
+    { id: "all", label: "Обе", img: "" }
+  ];
+
+  for(const it of items){
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "dogPill" + (current === it.id ? " active" : "");
+    b.dataset.dog = it.id;
+
+    if(it.img){
+      const im = document.createElement("img");
+      im.src = it.img;
+      im.alt = it.label;
+      b.appendChild(im);
+    } else {
+      const bubble = document.createElement("span");
+      bubble.textContent = "🐾";
+      bubble.style.fontSize = "18px";
+      b.appendChild(bubble);
+    }
+
+    const label = document.createElement("span");
+    label.textContent = it.label;
+    b.appendChild(label);
+
+    dogPillsEl.appendChild(b);
+  }
+}
+
+if(dogPillsEl){
+  dogPillsEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("button.dogPill");
+    if(!btn) return;
+    applyDogFilter(btn.dataset.dog);
+  });
+}
